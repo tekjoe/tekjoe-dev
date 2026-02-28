@@ -1,0 +1,11 @@
+Model Information:
+* title:	shawarma
+* source:	https://sketchfab.com/3d-models/shawarma-d6f9e248ecce4449850611fff8336c27
+* author:	noam (https://sketchfab.com/ndly466)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "shawarma" (https://sketchfab.com/3d-models/shawarma-d6f9e248ecce4449850611fff8336c27) by noam (https://sketchfab.com/ndly466) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
