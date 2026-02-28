@@ -3,6 +3,16 @@ import type { StatsResponse, StravaStats } from "@/types/stats";
 
 export const revalidate = 3600;
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: corsHeaders });
+}
+
 async function getAccessToken(): Promise<string> {
   if (process.env.STRAVA_ACCESS_TOKEN) {
     return process.env.STRAVA_ACCESS_TOKEN;
@@ -66,13 +76,13 @@ export async function GET() {
       lastUpdated: new Date().toISOString(),
     };
 
-    return NextResponse.json(response);
+    return NextResponse.json(response, { headers: corsHeaders });
   } catch (error) {
     const response: StatsResponse<StravaStats> = {
       data: null,
       lastUpdated: new Date().toISOString(),
       error: error instanceof Error ? error.message : "Unknown error",
     };
-    return NextResponse.json(response, { status: 500 });
+    return NextResponse.json(response, { status: 500, headers: corsHeaders });
   }
 }
