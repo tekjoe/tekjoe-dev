@@ -9,11 +9,11 @@ export function HeroBackground() {
         colorA="#46157B"
         colorB="#10BBE4"
         colorC="#E72026"
-        speed={0.4}
-        blend={0.6}
-        amplitude={0.8}
-        frequency={1.2}
-        offset={0}
+        speed={2}
+        intensity={60}
+        waviness={40}
+        rayDensity={15}
+        height={100}
       />
       <FloatingParticles
         count={5}
@@ -25,8 +25,7 @@ export function HeroBackground() {
         opacity={0.3}
       />
       <FilmGrain
-        intensity={0.08}
-        speed={1}
+        strength={0.1}
       />
     </Shader>
   );
