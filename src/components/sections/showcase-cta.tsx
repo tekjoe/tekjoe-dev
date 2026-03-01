@@ -3,6 +3,7 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import dynamic from "next/dynamic";
+import { LazyShader } from "@/components/shaders/lazy-shader";
 
 const CTAShaders = dynamic(
   () =>
@@ -20,9 +21,11 @@ export function ShowcaseCTA() {
       ref={ref}
       className="relative min-h-[60vh] flex items-center justify-center overflow-hidden"
     >
-      {/* Shader background */}
+      {/* Shader background — lazy mounted/unmounted based on viewport */}
       <div className="absolute inset-0">
-        <CTAShaders />
+        <LazyShader>
+          <CTAShaders />
+        </LazyShader>
       </div>
 
       {/* Dark overlay for readability */}

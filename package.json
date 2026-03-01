@@ -18,7 +18,7 @@
     "react-dom": "19.2.3",
     "shaders": "^2.3.75",
     "tailwind-merge": "^3.5.0",
-    "three": "^0.182.0"
+    "three": "^0.183.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",

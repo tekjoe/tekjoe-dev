@@ -3,6 +3,7 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import dynamic from "next/dynamic";
+import { LazyShader } from "@/components/shaders/lazy-shader";
 
 const AboutShaders = dynamic(
   () =>
@@ -59,7 +60,7 @@ function CapabilityCard({
         delay: index * 0.12,
         ease: [0.33, 1, 0.68, 1],
       }}
-      className="group relative p-6 border border-border bg-vhs-bg/60 backdrop-blur-sm hover:border-opacity-50 transition-all duration-500"
+      className="group relative p-6 border border-border bg-vhs-bg/60 backdrop-blur-sm hover:border-opacity-50 transition-colors duration-500"
       style={{
         ["--cap-color" as string]: capability.color,
       }}
@@ -95,9 +96,11 @@ export function About() {
       id="about"
       className="relative bg-vhs-bg section-padding overflow-hidden"
     >
-      {/* Shader background */}
+      {/* Shader background — lazy mounted/unmounted based on viewport */}
       <div className="absolute inset-0 opacity-20">
-        <AboutShaders />
+        <LazyShader>
+          <AboutShaders />
+        </LazyShader>
       </div>
 
       <div className="max-w-6xl mx-auto relative z-10">

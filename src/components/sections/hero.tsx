@@ -3,12 +3,24 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { HeroShaders, HeroBackground } from "@/components/shaders/hero-shaders";
+import { HeroShaders } from "@/components/shaders/hero-shaders";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 
 const VHSHeroScene = dynamic(
   () =>
     import("@/components/three/vhs-hero-scene").then(
       (mod) => mod.VHSHeroScene
+    ),
+  {
+    ssr: false,
+    loading: () => <div className="absolute inset-0 bg-[#141318]" />,
+  }
+);
+
+const HeroBackground = dynamic(
+  () =>
+    import("@/components/shaders/hero-shaders").then(
+      (mod) => mod.HeroBackground
     ),
   {
     ssr: false,
@@ -37,6 +49,7 @@ function VhsTimecode() {
 }
 
 export function Hero() {
+  const isMobile = useIsMobile();
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -60,9 +73,11 @@ export function Hero() {
         <div className="relative w-full" style={{ aspectRatio: "16 / 10", maxHeight: "calc(100vh - 5rem)" }}>
 
           {/* ── Shader background (visible through transparent Three.js sky) ── */}
-          <div className="absolute inset-0" style={{ zIndex: 0 }}>
-            <HeroBackground />
-          </div>
+          {!isMobile && (
+            <div className="absolute inset-0" style={{ zIndex: 0 }}>
+              <HeroBackground />
+            </div>
+          )}
 
           {/* ── Three.js Scene (slope + grid + spheres) ── */}
           <div className="absolute inset-0" style={{ zIndex: 1 }}>

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { StatsResponse, WhoopStats } from "@/types/stats";
+import { getToken, setToken } from "@/lib/token-store";
 
 export const revalidate = 3600;
 
@@ -15,28 +16,44 @@ export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: corsHeaders });
 }
 
-async function getAccessToken(): Promise<string> {
-  if (process.env.WHOOP_ACCESS_TOKEN) {
-    return process.env.WHOOP_ACCESS_TOKEN;
-  }
+// In-process cache — persists across requests within a warm instance
+let cachedData: WhoopStats | null = null;
+let cachedAt: string | null = null;
 
-  if (process.env.WHOOP_REFRESH_TOKEN) {
+async function getAccessToken(): Promise<string> {
+  const clientId = process.env.WHOOP_CLIENT_ID;
+  const clientSecret = process.env.WHOOP_CLIENT_SECRET;
+  const refreshToken = await getToken("whoop_refresh_token");
+
+  // Prefer refresh token flow
+  if (clientId && clientSecret && refreshToken) {
     const res = await fetch("https://api.prod.whoop.com/oauth/oauth2/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        client_id: process.env.WHOOP_CLIENT_ID || "",
-        client_secret: process.env.WHOOP_CLIENT_SECRET || "",
-        refresh_token: process.env.WHOOP_REFRESH_TOKEN,
+        client_id: clientId,
+        client_secret: clientSecret,
+        refresh_token: refreshToken,
         grant_type: "refresh_token",
       }),
     });
-    if (!res.ok) throw new Error("Whoop token refresh failed");
-    const data = await res.json();
-    return data.access_token;
+    if (res.ok) {
+      const data = await res.json();
+      // Persist new tokens (handles rotation automatically)
+      if (data.access_token) await setToken("whoop_access_token", data.access_token);
+      if (data.refresh_token) await setToken("whoop_refresh_token", data.refresh_token);
+      return data.access_token;
+    }
+    // Fall through to cached access token if refresh fails
   }
 
-  throw new Error("No Whoop credentials configured");
+  // Try cached access token from token store
+  const accessToken = await getToken("whoop_access_token");
+  if (accessToken) return accessToken;
+
+  throw new Error(
+    "No Whoop credentials configured. Visit /api/auth/whoop to connect your account."
+  );
 }
 
 export async function GET() {
@@ -51,7 +68,8 @@ export async function GET() {
     ]);
 
     if (!recoveryRes.ok || !sleepRes.ok || !cycleRes.ok) {
-      throw new Error("Whoop API request failed");
+      const statuses = `recovery:${recoveryRes.status} sleep:${sleepRes.status} cycle:${cycleRes.status}`;
+      throw new Error(`Whoop API request failed (${statuses})`);
     }
 
     const recoveryData = await recoveryRes.json();
@@ -72,13 +90,26 @@ export async function GET() {
         : 0,
     };
 
+    // Cache successful result
+    cachedData = data;
+    cachedAt = new Date().toISOString();
+
     const response: StatsResponse<WhoopStats> = {
       data,
-      lastUpdated: new Date().toISOString(),
+      lastUpdated: cachedAt,
     };
 
     return NextResponse.json(response, { headers: corsHeaders });
   } catch (error) {
+    // Return cached data if available instead of failing
+    if (cachedData) {
+      const response: StatsResponse<WhoopStats> = {
+        data: cachedData,
+        lastUpdated: cachedAt || new Date().toISOString(),
+      };
+      return NextResponse.json(response, { headers: corsHeaders });
+    }
+
     const response: StatsResponse<WhoopStats> = {
       data: null,
       lastUpdated: new Date().toISOString(),

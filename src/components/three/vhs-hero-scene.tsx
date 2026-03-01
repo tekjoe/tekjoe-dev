@@ -27,12 +27,14 @@ function GlossySphere({
   color,
   emissive,
   index,
+  segments = 64,
 }: {
   position: [number, number, number];
   radius: number;
   color: string;
   emissive: string;
   index: number;
+  segments?: number;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
@@ -92,26 +94,39 @@ function GlossySphere({
     meshRef.current.rotation.y = t * 0.15;
   });
 
+  const { size } = useThree();
+  const mobile = size.width < 768;
+
   return (
     <mesh
       ref={meshRef}
       position={position}
-      castShadow
+      castShadow={!mobile}
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
       onClick={handleClick}
     >
-      <sphereGeometry args={[radius, 64, 64]} />
-      <meshPhysicalMaterial
-        color={color}
-        emissive={hovered || tapped ? emissive : "#000000"}
-        emissiveIntensity={hovered || tapped ? 0.4 : 0}
-        metalness={0.2}
-        roughness={0.1}
-        clearcoat={1}
-        clearcoatRoughness={0.05}
-        envMapIntensity={0.9}
-      />
+      <sphereGeometry args={[radius, segments, segments]} />
+      {mobile ? (
+        <meshStandardMaterial
+          color={color}
+          emissive={hovered || tapped ? emissive : "#000000"}
+          emissiveIntensity={hovered || tapped ? 0.4 : 0}
+          metalness={0.2}
+          roughness={0.15}
+        />
+      ) : (
+        <meshPhysicalMaterial
+          color={color}
+          emissive={hovered || tapped ? emissive : "#000000"}
+          emissiveIntensity={hovered || tapped ? 0.4 : 0}
+          metalness={0.2}
+          roughness={0.1}
+          clearcoat={1}
+          clearcoatRoughness={0.05}
+          envMapIntensity={0.9}
+        />
+      )}
     </mesh>
   );
 }
@@ -195,9 +210,9 @@ function SceneContent() {
       <directionalLight
         position={[4, 15, 5]}
         intensity={1.8}
-        castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        castShadow={!isMobile}
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
         shadow-camera-far={60}
         shadow-camera-left={-30}
         shadow-camera-right={30}
@@ -220,7 +235,7 @@ function SceneContent() {
         {/* Ground + grid */}
         <Ground />
 
-        {/* Spheres */}
+        {/* Spheres — fewer segments on mobile */}
         <group
           onPointerOver={onPointerOverSphere}
           onPointerOut={onPointerOutSphere}
@@ -233,6 +248,7 @@ function SceneContent() {
               radius={sphere.radius}
               color={sphere.color}
               emissive={sphere.emissive}
+              segments={isMobile ? 24 : 64}
             />
           ))}
         </group>
@@ -245,10 +261,13 @@ function SceneContent() {
 
 /* ─── Main exported scene ─── */
 export function VHSHeroScene() {
+  const isMobileDevice =
+    typeof window !== "undefined" && window.innerWidth < 768;
+
   return (
     <Canvas
-      shadows
-      dpr={[1, 1.5]}
+      shadows={!isMobileDevice}
+      dpr={isMobileDevice ? [1, 1] : [1, 1.5]}
       camera={{
         position: [-6, 3.5, 9],
         fov: 42,

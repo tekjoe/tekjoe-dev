@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { LazyShader } from "@/components/shaders/lazy-shader";
 
 const FooterShaders = dynamic(
   () =>
@@ -44,9 +45,11 @@ export function Footer() {
 
   return (
     <footer className="relative bg-vhs-dark border-t border-border overflow-hidden">
-      {/* Shader background */}
+      {/* Shader background — lazy mounted/unmounted based on viewport */}
       <div className="absolute inset-0 opacity-30">
-        <FooterShaders />
+        <LazyShader>
+          <FooterShaders />
+        </LazyShader>
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-16">
