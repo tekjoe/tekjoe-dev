@@ -4,6 +4,7 @@ import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import dynamic from "next/dynamic";
 import { LazyShader } from "@/components/shaders/lazy-shader";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 
 const AboutShaders = dynamic(
   () =>
@@ -90,6 +91,7 @@ function CapabilityCard({
 export function About() {
   const titleRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(titleRef, { once: true, margin: "-100px" });
+  const isMobile = useIsMobile();
 
   return (
     <section
@@ -97,11 +99,13 @@ export function About() {
       className="relative bg-vhs-bg section-padding overflow-hidden"
     >
       {/* Shader background — lazy mounted/unmounted based on viewport */}
-      <div className="absolute inset-0 opacity-20">
-        <LazyShader>
-          <AboutShaders />
-        </LazyShader>
-      </div>
+      {!isMobile && (
+        <div className="absolute inset-0 opacity-20">
+          <LazyShader>
+            <AboutShaders />
+          </LazyShader>
+        </div>
+      )}
 
       <div className="max-w-6xl mx-auto relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">

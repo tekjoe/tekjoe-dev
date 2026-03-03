@@ -259,6 +259,14 @@ function SceneContent() {
   );
 }
 
+function TouchScrollFix() {
+  const { gl } = useThree();
+  useEffect(() => {
+    gl.domElement.style.touchAction = "pan-y";
+  }, [gl]);
+  return null;
+}
+
 /* ─── Main exported scene ─── */
 export function VHSHeroScene() {
   const isMobileDevice =
@@ -287,6 +295,7 @@ export function VHSHeroScene() {
         camera.rotateZ(THREE.MathUtils.degToRad(-17));
       }}
     >
+      <TouchScrollFix />
       <SceneContent />
     </Canvas>
   );

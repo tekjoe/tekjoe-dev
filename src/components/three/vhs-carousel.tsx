@@ -50,6 +50,7 @@ const LERP_SPEED = 0.04;
 const SELF_ROTATE_SPEED = 0.4;
 const DRAG_SENSITIVITY = 0.01;
 const RESUME_DELAY = 2000;
+const DRAG_THRESHOLD = 5; // px before deciding gesture direction
 
 /** Shared mutable drag state — read by useFrame, written by DOM events */
 interface DragState {
@@ -206,7 +207,7 @@ function CarouselScene({
 
   return (
     <>
-      <CanvasCursor />
+      <CanvasSetup />
       <ambientLight intensity={2.0} />
       <directionalLight position={[3, 5, 4]} intensity={2.0} />
       <pointLight position={[-3, 2, -2]} intensity={0.8} color="#4488cc" />
@@ -229,10 +230,11 @@ function CarouselScene({
   );
 }
 
-function CanvasCursor() {
+function CanvasSetup() {
   const { gl } = useThree();
   useEffect(() => {
     gl.domElement.style.cursor = "pointer";
+    gl.domElement.style.touchAction = "pan-y";
     return () => {
       gl.domElement.style.cursor = "auto";
     };
@@ -252,12 +254,13 @@ export function VHSCarousel({ stats, loading }: VHSCarouselProps) {
   const dragState = useRef<DragState>({ active: false, rotation: 0 });
   const lastX = useRef(0);
   const startX = useRef(0);
+  const startY = useRef(0);
   const pointerId = useRef<number | null>(null);
   const dragging = useRef(false);
+  const gestureDecided = useRef(false);
+  const isHorizontal = useRef(false);
   const resumeTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const wrapperRef = useRef<HTMLDivElement>(null);
-
-  const DRAG_THRESHOLD = 5; // px before treating as drag instead of click
 
   const handleSelect = useCallback((index: number) => {
     setSelectedIndex(index);
@@ -265,9 +268,12 @@ export function VHSCarousel({ stats, loading }: VHSCarouselProps) {
 
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     startX.current = e.clientX;
+    startY.current = e.clientY;
     lastX.current = e.clientX;
     pointerId.current = e.pointerId;
     dragging.current = false;
+    gestureDecided.current = false;
+    isHorizontal.current = false;
     if (resumeTimer.current) clearTimeout(resumeTimer.current);
   }, []);
 
@@ -275,17 +281,33 @@ export function VHSCarousel({ stats, loading }: VHSCarouselProps) {
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (pointerId.current === null) return;
 
-      // Start drag only after exceeding threshold
+      const dx = Math.abs(e.clientX - startX.current);
+      const dy = Math.abs(e.clientY - startY.current);
+
+      // Decide gesture direction once past threshold
+      if (!gestureDecided.current) {
+        if (Math.max(dx, dy) < DRAG_THRESHOLD) return;
+        gestureDecided.current = true;
+        isHorizontal.current = dx > dy;
+        if (!isHorizontal.current) {
+          // Vertical gesture — abandon tracking, let browser scroll
+          pointerId.current = null;
+          return;
+        }
+      }
+
+      if (!isHorizontal.current) return;
+
+      // Horizontal drag — capture and rotate
       if (!dragging.current) {
-        if (Math.abs(e.clientX - startX.current) < DRAG_THRESHOLD) return;
         dragging.current = true;
         dragState.current.active = true;
         e.currentTarget.setPointerCapture(e.pointerId);
       }
 
-      const dx = e.clientX - lastX.current;
+      const moveDx = e.clientX - lastX.current;
       lastX.current = e.clientX;
-      dragState.current.rotation += dx * DRAG_SENSITIVITY;
+      dragState.current.rotation += moveDx * DRAG_SENSITIVITY;
     },
     []
   );
@@ -300,9 +322,10 @@ export function VHSCarousel({ stats, loading }: VHSCarouselProps) {
           dragState.current.active = false;
         }, RESUME_DELAY);
       }
-      // If not dragging, this was a click — let it propagate to Html onClick
       pointerId.current = null;
       dragging.current = false;
+      gestureDecided.current = false;
+      isHorizontal.current = false;
     },
     []
   );
@@ -312,7 +335,7 @@ export function VHSCarousel({ stats, loading }: VHSCarouselProps) {
       <div className="w-full">
         <div
           ref={wrapperRef}
-          className="w-full touch-none"
+          className="w-full touch-pan-y"
           style={{ height: "70vh", minHeight: "480px", maxHeight: "720px" }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}

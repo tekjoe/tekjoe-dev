@@ -1,8 +1,8 @@
 "use client";
 
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Html, RoundedBox } from "@react-three/drei";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
 // Cassette proportions (lying flat, wider than tall)
@@ -266,6 +266,7 @@ function CassetteModel() {
           distanceFactor={3.6}
           zIndexRange={[1, 0]}
           center
+          style={{ pointerEvents: "none" }}
         >
           <CassetteLabel />
         </Html>
@@ -352,7 +353,21 @@ function CassetteModel() {
   );
 }
 
-export function VHSTapeScene({ cameraZ = 7.5 }: { cameraZ?: number }) {
+function TouchScrollFix() {
+  const { gl } = useThree();
+  useEffect(() => {
+    gl.domElement.style.touchAction = "pan-y";
+  }, [gl]);
+  return null;
+}
+
+export function VHSTapeScene({
+  cameraZ = 7.5,
+  disableTouch = false,
+}: {
+  cameraZ?: number;
+  disableTouch?: boolean;
+}) {
   return (
     <Canvas
       dpr={[1, 1.5]}
@@ -363,8 +378,10 @@ export function VHSTapeScene({ cameraZ = 7.5 }: { cameraZ?: number }) {
         toneMapping: THREE.ACESFilmicToneMapping,
         toneMappingExposure: 1.6,
       }}
-      style={{ background: "transparent" }}
+      style={{ background: "transparent", ...(disableTouch ? { pointerEvents: "none" as const } : {}) }}
     >
+      <TouchScrollFix />
+
       {/* Lighting */}
       <ambientLight intensity={1.2} />
       <directionalLight position={[3, 6, 4]} intensity={1.8} />
@@ -377,6 +394,7 @@ export function VHSTapeScene({ cameraZ = 7.5 }: { cameraZ?: number }) {
       <OrbitControls
         enableZoom={false}
         enablePan={false}
+        enableRotate={!disableTouch}
         autoRotate
         autoRotateSpeed={1.2}
         minPolarAngle={Math.PI / 4}

@@ -128,7 +128,7 @@ export function WorkHero() {
               View Projects
             </a>
             <Link
-              href="#contact"
+              href="/contact"
               className="inline-flex items-center px-7 py-3 border border-white/30 text-white font-semibold text-sm tracking-wide uppercase hover:border-vhs-yellow hover:text-vhs-yellow transition-colors duration-300"
             >
               Get in Touch
@@ -142,10 +142,13 @@ export function WorkHero() {
           animate={isInView ? { opacity: 1, scale: 1 } : {}}
           transition={{ duration: 0.8, delay: 0.3, ease: [0.33, 1, 0.68, 1] }}
           className="relative flex-shrink-0 left-1/2 -translate-x-1/2 w-[90vw] h-[240px] mt-4 lg:mt-0 sm:static sm:translate-x-0 sm:w-full sm:h-[300px] lg:max-w-none lg:w-[640px] lg:h-[540px]"
-          style={{ overflow: "visible" }}
+          style={{ overflow: "visible", pointerEvents: isMobile ? "none" : "auto", touchAction: isMobile ? "pan-y" : "auto" }}
         >
-          <div style={{ position: "absolute", inset: "-30%", left: isMobile ? "-20%" : "-30%" }}>
-            <VHSTapeScene cameraZ={isMobile ? 7 : 10} />
+          <div
+            className={isMobile ? "[&_*]:!pointer-events-none" : ""}
+            style={{ position: "absolute", inset: "-30%", left: isMobile ? "-20%" : "-30%", pointerEvents: isMobile ? "none" : "auto" }}
+          >
+            <VHSTapeScene cameraZ={isMobile ? 7 : 10} disableTouch={isMobile} />
           </div>
         </motion.div>
       </div>

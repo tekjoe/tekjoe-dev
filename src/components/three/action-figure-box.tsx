@@ -1,8 +1,8 @@
 "use client";
 
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Html } from "@react-three/drei";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { StatsPanel } from "./stats-panel";
 import type { AllStats } from "@/hooks/use-stats";
@@ -244,12 +244,22 @@ function VHSTapeModel({
   );
 }
 
+function TouchScrollFix() {
+  const { gl } = useThree();
+  useEffect(() => {
+    gl.domElement.style.touchAction = "pan-y";
+  }, [gl]);
+  return null;
+}
+
 export function ActionFigureScene({
   stats,
   loading,
+  disableTouch = false,
 }: {
   stats: AllStats;
   loading: boolean;
+  disableTouch?: boolean;
 }) {
   return (
     <Canvas
@@ -263,6 +273,7 @@ export function ActionFigureScene({
       }}
       style={{ background: "transparent" }}
     >
+      <TouchScrollFix />
       <ambientLight intensity={2.0} />
       <directionalLight position={[3, 5, 4]} intensity={2.0} />
       <pointLight position={[-3, 2, -2]} intensity={0.8} color="#4488cc" />
@@ -272,6 +283,7 @@ export function ActionFigureScene({
       <OrbitControls
         enableZoom={false}
         enablePan={false}
+        enableRotate={!disableTouch}
         autoRotate
         autoRotateSpeed={1.5}
         minPolarAngle={Math.PI / 2 - 0.3}

@@ -4,6 +4,7 @@ import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import dynamic from "next/dynamic";
 import { LazyShader } from "@/components/shaders/lazy-shader";
+import { useIsMobile } from "@/hooks/use-is-mobile";
 
 const CTAShaders = dynamic(
   () =>
@@ -14,6 +15,7 @@ const CTAShaders = dynamic(
 export function ShowcaseCTA() {
   const ref = useRef<HTMLElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const isMobile = useIsMobile();
 
   return (
     <section
@@ -22,14 +24,28 @@ export function ShowcaseCTA() {
       className="relative min-h-[60vh] flex items-center justify-center overflow-hidden"
     >
       {/* Shader background — lazy mounted/unmounted based on viewport */}
-      <div className="absolute inset-0">
-        <LazyShader>
-          <CTAShaders />
-        </LazyShader>
-      </div>
+      {isMobile ? (
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `
+              radial-gradient(ellipse 120% 80% at 30% 20%, rgba(70, 21, 123, 0.5) 0%, transparent 60%),
+              radial-gradient(ellipse 100% 70% at 80% 80%, rgba(232, 37, 143, 0.35) 0%, transparent 50%),
+              radial-gradient(ellipse 80% 60% at 60% 40%, rgba(254, 216, 1, 0.12) 0%, transparent 50%),
+              linear-gradient(180deg, #0A0A0F 0%, #1a0a2e 50%, #0E0D13 100%)
+            `,
+          }}
+        />
+      ) : (
+        <div className="absolute inset-0">
+          <LazyShader>
+            <CTAShaders />
+          </LazyShader>
+        </div>
+      )}
 
       {/* Dark overlay for readability */}
-      <div className="absolute inset-0 bg-vhs-bg/60" />
+      <div className="absolute inset-0 bg-vhs-bg/40" />
 
       {/* Content */}
       <div className="relative z-10 text-center px-6 py-24">
