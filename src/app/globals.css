@@ -383,6 +383,11 @@ body {
   animation: vhs-grain-shift 0.3s steps(4) infinite;
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* Section padding */
 .section-padding {
   padding: 6rem 1.5rem;
@@ -409,4 +414,28 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--vhs-gold);
+}
+
+/* Thin horizontal scrollbar for inline elements */
+.vhs-scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--vhs-purple) rgba(255, 255, 255, 0.05);
+}
+
+.vhs-scrollbar-thin::-webkit-scrollbar {
+  height: 4px;
+}
+
+.vhs-scrollbar-thin::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+}
+
+.vhs-scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--vhs-purple);
+  border-radius: 2px;
+}
+
+.vhs-scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--vhs-yellow);
 }

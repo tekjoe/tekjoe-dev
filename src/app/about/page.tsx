@@ -1,49 +1,63 @@
-"use client";
+// src/app/about/page.tsx
+import type { Metadata } from "next";
+import type { AllStats } from "@/types/stats";
+import type {
+  StatsResponse,
+  GitHubStats,
+  StravaStats,
+} from "@/types/stats";
+import { AboutHero } from "@/components/about/about-hero";
+import { AboutSections } from "@/components/about/about-sections";
 
-import dynamic from "next/dynamic";
-import Link from "next/link";
-import { useStats } from "@/hooks/use-stats";
+export const metadata: Metadata = {
+  title: "About | Joe Ramirez — Creative Developer",
+  description:
+    "Creative developer with 8+ years crafting shader-rich interfaces, bold geometry, and handcrafted motion for the web.",
+  openGraph: {
+    title: "About | Joe Ramirez",
+    description:
+      "Creative developer with 8+ years crafting shader-rich interfaces and handcrafted motion — all engineered to perform at production scale.",
+    type: "profile",
+    images: [{ url: "/og-about.png", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About | Joe Ramirez",
+    description:
+      "Creative developer with 8+ years crafting shader-rich interfaces and handcrafted motion — all engineered to perform at production scale.",
+  },
+};
 
-const ActionFigureScene = dynamic(
-  () =>
-    import("@/components/three/action-figure-box").then(
-      (mod) => mod.ActionFigureScene
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+
+function fallback<T>(): StatsResponse<T> {
+  return { data: null, lastUpdated: new Date().toISOString(), error: "Not loaded" };
+}
+
+async function fetchStats(): Promise<AllStats> {
+  const [github, strava] = await Promise.allSettled([
+    fetch(`${BASE_URL}/api/stats/github`, { next: { revalidate: 3600 } }).then(
+      (r) => r.json() as Promise<StatsResponse<GitHubStats>>
     ),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="w-full h-full flex items-center justify-center">
-        <p className="font-mono text-xs text-vhs-yellow animate-pulse">
-          LOADING...
-        </p>
-      </div>
+    fetch(`${BASE_URL}/api/stats/strava`, { next: { revalidate: 3600 } }).then(
+      (r) => r.json() as Promise<StatsResponse<StravaStats>>
     ),
-  }
-);
+  ]);
 
-export default function AboutPage() {
-  const { stats, loading } = useStats();
+  return {
+    github: github.status === "fulfilled" ? github.value : fallback<GitHubStats>(),
+    strava: strava.status === "fulfilled" ? strava.value : fallback<StravaStats>(),
+    whoop: fallback(),
+  };
+}
+
+export default async function AboutPage() {
+  const stats = await fetchStats();
 
   return (
-    <div className="min-h-screen bg-vhs-bg pt-20 overflow-visible">
-      <div className="max-w-6xl mx-auto px-6 overflow-visible">
-        <div className="text-center mb-8">
-          <p className="font-mono text-xs uppercase tracking-[0.3em] text-vhs-yellow mb-2">
-            About
-          </p>
-          <h1 className="text-3xl md:text-5xl font-bold text-white">
-            Meet the Developer
-          </h1>
-          <p className="text-white/50 text-sm mt-3 max-w-md mx-auto">
-            Drag to rotate. Flip it around to see the stats.
-          </p>
-        </div>
-
-        <div className="w-full max-w-2xl mx-auto overflow-visible" style={{ height: "80vh" }}>
-          <ActionFigureScene stats={stats} loading={loading} />
-        </div>
-
-      </div>
+    <div className="relative min-h-screen bg-vhs-bg pt-20">
+      <AboutHero stats={stats} loading={false} />
+      <AboutSections stats={stats} />
     </div>
   );
 }

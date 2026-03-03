@@ -34,12 +34,14 @@ export const metadata: Metadata = {
     siteName: "tekjoe",
     locale: "en_US",
     type: "website",
+    images: [{ url: "/og-home.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title: "tekjoe | Web Developer",
     description:
       "Web developer with 8+ years of experience building websites and applications for small businesses, nonprofits, and enterprise clients.",
+    images: ["/og-home.png"],
   },
   robots: {
     index: true,

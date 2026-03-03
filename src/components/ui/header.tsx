@@ -5,9 +5,9 @@ import { motion, useScroll, useMotionValueEvent } from "framer-motion";
 import { useState } from "react";
 
 const navLinks = [
-  { href: "#work", label: "Work" },
+  { href: "/work", label: "Work" },
   { href: "/about", label: "About" },
-  { href: "#contact", label: "Contact" },
+  { href: "/contact", label: "Contact" },
 ];
 
 export function Header() {

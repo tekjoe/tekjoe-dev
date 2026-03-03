@@ -8,11 +8,8 @@ import type {
   WhoopStats,
 } from "@/types/stats";
 
-export interface AllStats {
-  github: StatsResponse<GitHubStats>;
-  strava: StatsResponse<StravaStats>;
-  whoop: StatsResponse<WhoopStats>;
-}
+export type { AllStats } from "@/types/stats";
+import type { AllStats } from "@/types/stats";
 
 const fallback = <T,>(): StatsResponse<T> => ({
   data: null,

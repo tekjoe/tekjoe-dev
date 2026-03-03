@@ -254,7 +254,7 @@ export function ActionFigureScene({
   return (
     <Canvas
       dpr={[1, 1.5]}
-      camera={{ position: [0, 0, 7], fov: 40 }}
+      camera={{ position: [0, 0, 7], fov: 90 }}
       gl={{
         alpha: true,
         antialias: true,
